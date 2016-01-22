@@ -52,14 +52,45 @@ app.get('/todos/:id', function (request, response){
 	else response.status(404).send();
 });
 
+// PUT /todos/:id
+app.put('/todos/:id', function (request, response) {
+	var body = _.pick(request.body, 'description', 'completed');
+	var todoId = parseInt(request.params.id, 10);
+	var matchedItem = _.findWhere(todos, {id: todoId});
+	
+	if(!matchedItem) {
+		return response.status(404).json({'Error': 'Item not found'});
+	}
+
+	var validAttributes = {};
+
+	if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+		validAttributes.completed = body.completed;
+	} else if(body.hasOwnProperty('completed')) {
+		return response.status(400).json({'Error': 'Completed attributed is not in the correct format'});
+	}
+
+	if(body.hasOwnProperty('description') && 
+		_.isString(body.description) && body.description.trim().length > 0) {
+		validAttributes.description = body.description;
+	} else if(body.hasOwnProperty('description')) {
+		return response.status(400).json({'Error': 'Description attributed is not in the correct format'});
+	}
+
+	_.extend(matchedItem, validAttributes);
+	response.json(matchedItem);
+});
+
 app.delete('/todos/:id', function (request, response) {
 	var todoId = parseInt(request.params.id, 10);
-	var array = _.without(todos, _.findWhere(todos, {'id': todoId}));
+//	var array = _.without(todos, _.findWhere(todos, {'id': todoId}));
+	var matchedItem = _.findWhere(todos, {id: todoId});
 
-	if(!_.isEmpty(array))
-		response.json(array);
-	else response.status(404).json({'Error': 'No item found with that id'});
-
+	if(!matchedItem)
+		response.status(404).json({'Error': 'No item found with that id'});
+	else 
+		todos = _.without(todos, matchedItem);
+		response.json(matchedItem);
 	return;
 
 });
