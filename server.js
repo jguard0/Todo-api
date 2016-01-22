@@ -52,6 +52,18 @@ app.get('/todos/:id', function (request, response){
 	else response.status(404).send();
 });
 
+app.delete('/todos/:id', function (request, response) {
+	var todoId = parseInt(request.params.id, 10);
+	var array = _.without(todos, _.findWhere(todos, {'id': todoId}));
+
+	if(!_.isEmpty(array))
+		response.json(array);
+	else response.status(404).json({'Error': 'No item found with that id'});
+
+	return;
+
+});
+
 // POST /todos
 app.post('/todos', function (request, response) {
 	var body = _.pick(request.body, 'description', 'completed');
