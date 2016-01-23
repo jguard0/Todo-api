@@ -23,14 +23,28 @@ var todos = [];
 
 app.use(bodyParser.json());
 
-app.get('/', function (request, request){
+app.get('/', function (request, request) {
 	request.send('Todo API Root!');
-
 });
 
 // GET /todos
-app.get('/todos', function (request, response){
-	response.json(todos);
+app.get('/todos', function (request, response) {
+	var queryParams = request.query;
+	var filterTodos = todos;
+	var bool;
+
+	console.log(queryParams);
+
+	if(queryParams.hasOwnProperty('completed')) {
+
+		if(queryParams.completed == 'true')
+			bool = true;
+		else bool = false;
+
+		filterTodos = _.where(filterTodos, {'completed': bool});
+	} 
+
+	response.json(filterTodos);
 });
 
 // GET /todos/:id
