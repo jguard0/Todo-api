@@ -44,6 +44,13 @@ app.get('/todos', function (request, response) {
 		filterTodos = _.where(filterTodos, {'completed': bool});
 	} 
 
+	if(queryParams.hasOwnProperty('desc') && queryParams.desc.length > 0) {
+		filterTodos = _.filter(filterTodos, function (items) { 
+			return items.description.toLowerCase().
+				indexOf(queryParams.desc.toLowerCase()) > 0;
+		});
+	}
+
 	response.json(filterTodos);
 });
 
