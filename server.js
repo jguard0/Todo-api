@@ -61,22 +61,38 @@ app.get('/todos', function(request, response) {
 // GET /todos/:id
 app.get('/todos/:id', function(request, response) {
 	var todoId = parseInt(request.params.id, 10);
-	var matchItems = _.findWhere(todos, {
-		id: todoId
+	
+	console.log('todoId: ' + todoId);
+
+	db.todo.findById(todoId).then(function (todo) {
+		if(todo) {
+			return response.status(200).json(todo);
+			console.log(todo.toJSON());
+		} else {
+			return response.status(400).json('item not found');
+			console.log('item not found');
+		}
+	}).catch(function (e) {
+		return response.status(500);
+		console.log(e);
 	});
 
-	// var matchItems;
-	// // find the match
-	// todos.forEach(function (items) {
-	// 	if(todoId == items.id) {
-	// 		matchItems = items;
-	// 		return;
-	// 	}
+	// var matchItems = _.findWhere(todos, {
+	// 	id: todoId
 	// });
 
-	if (matchItems)
-		response.json(matchItems);
-	else response.status(404).send();
+	// // var matchItems;
+	// // // find the match
+	// // todos.forEach(function (items) {
+	// // 	if(todoId == items.id) {
+	// // 		matchItems = items;
+	// // 		return;
+	// // 	}
+	// // });
+
+	// if (matchItems)
+	// 	response.json(matchItems);
+	// else response.status(404).send();
 });
 
 // PUT /todos/:id
@@ -118,7 +134,8 @@ app.put('/todos/:id', function(request, response) {
 
 app.delete('/todos/:id', function(request, response) {
 	var todoId = parseInt(request.params.id, 10);
-	//	var array = _.without(todos, _.findWhere(todos, {'id': todoId}));
+	
+	var array = _.without(todos, _.findWhere(todos, {'id': todoId}));
 	var matchedItem = _.findWhere(todos, {
 		id: todoId
 	});
@@ -131,7 +148,6 @@ app.delete('/todos/:id', function(request, response) {
 		todos = _.without(todos, matchedItem);
 	response.json(matchedItem);
 	return;
-
 });
 
 // POST /todos
