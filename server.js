@@ -31,31 +31,58 @@ app.get('/', function(request, request) {
 
 // GET /todos
 app.get('/todos', function(request, response) {
-	var queryParams = request.query;
-	var filterTodos = todos;
-	var bool;
+	var query = request.query;
+	var where = {};
+	
+	console.log('query:' + query.description);
 
-	console.log(queryParams);
-
-	if (queryParams.hasOwnProperty('completed')) {
-
-		if (queryParams.completed == 'true')
-			bool = true;
-		else bool = false;
-
-		filterTodos = _.where(filterTodos, {
-			'completed': bool
-		});
+	if(query.hasOwnProperty('completed') && query.completed == 'true') {
+		where.completed = true;
+	} else if(query.hasOwnProperty('completed') && query.completed == 'false') {
+		where.completed = false;
 	}
 
-	if (queryParams.hasOwnProperty('desc') && queryParams.desc.length > 0) {
-		filterTodos = _.filter(filterTodos, function(items) {
-			return items.description.toLowerCase().
-			indexOf(queryParams.desc.toLowerCase()) > 0;
-		});
-	}
+	if(query.hasOwnProperty('description') && query.description.length > 0) {
+		where.description =  {
+			$like: '%' + query.description + '%'
+		}
+	};
 
-	response.json(filterTodos);
+	db.todo.findAll({where: where}).then (function (todos) {
+		if(!_.isEmpty(todos)) {
+			return response.status(200).json(todos);
+		} else {
+			return response.status(400).json('no items returned');
+		}
+	}).catch(function(e) {
+		return response.status(500).json('server error');
+	});
+
+	// var queryParams = request.query;
+	// var filterTodos = todos;
+	// var bool;
+
+	// console.log(queryParams);
+
+	// if (queryParams.hasOwnProperty('completed')) {
+
+	// 	if (queryParams.completed == 'true')
+	// 		bool = true;
+	// 	else bool = false;
+
+	// 	filterTodos = _.where(filterTodos, {
+	// 		'completed': bool
+	// 	});
+	// }
+
+	// if (queryParams.hasOwnProperty('desc') && queryParams.desc.length > 0) {
+	// 	filterTodos = _.filter(filterTodos, function(items) {
+	// 		return items.description.toLowerCase().
+	// 		indexOf(queryParams.desc.toLowerCase()) > 0;
+	// 	});
+	// }
+
+	// response.json(filterTodos);
 });
 
 // GET /todos/:id
