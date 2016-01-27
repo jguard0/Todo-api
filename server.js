@@ -125,40 +125,66 @@ app.get('/todos/:id', function(request, response) {
 });
 
 // PUT /todos/:id
-app.put('/todos/:id', function(request, response) {
-	var body = _.pick(request.body, 'description', 'completed');
-	var todoId = parseInt(request.params.id, 10);
-	var matchedItem = _.findWhere(todos, {
-		id: todoId
+app.put('/todos/:id', function(req, res) {
+	var todoId = parseInt(req.params.id, 10);
+	var body = _.pick(req.body, 'description', 'completed');
+	var attributes = {};
+
+	if (body.hasOwnProperty('completed')) {
+		attributes.completed = body.completed;
+	}
+
+	if (body.hasOwnProperty('description')) {
+		attributes.description = body.description;
+	}
+
+	db.todo.findById(todoId).then(function (todo) {
+		if (todo) {
+			todo.update(attributes).then(function(todo) {
+				res.json(todo.toJSON());
+			}, function (e) {
+				res.status(400).json(e);
+			});
+		} else {
+			res.status(404).send();
+		}
+	}, function () {
+		res.status(500).send();
 	});
 
-	if (!matchedItem) {
-		return response.status(404).json({
-			'Error': 'Item not found'
-		});
-	}
+	// var body = _.pick(request.body, 'description', 'completed');
+	// var todoId = parseInt(request.params.id, 10);
+	// var matchedItem = _.findWhere(todos, {
+	// 	id: todoId
+	// });
 
-	var validAttributes = {};
+	// if (!matchedItem) {
+	// 	return response.status(404).json({
+	// 		'Error': 'Item not found'
+	// 	});
+	// }
 
-	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-		validAttributes.completed = body.completed;
-	} else if (body.hasOwnProperty('completed')) {
-		return response.status(400).json({
-			'Error': 'Completed attributed is not in the correct format'
-		});
-	}
+	// var validAttributes = {};
 
-	if (body.hasOwnProperty('description') &&
-		_.isString(body.description) && body.description.trim().length > 0) {
-		validAttributes.description = body.description;
-	} else if (body.hasOwnProperty('description')) {
-		return response.status(400).json({
-			'Error': 'Description attributed is not in the correct format'
-		});
-	}
+	// if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+	// 	validAttributes.completed = body.completed;
+	// } else if (body.hasOwnProperty('completed')) {
+	// 	return response.status(400).json({
+	// 		'Error': 'Completed attributed is not in the correct format'
+	// 	});
+	// }
 
-	_.extend(matchedItem, validAttributes);
-	response.json(matchedItem);
+	// if (body.hasOwnProperty('description') &&
+	// 	_.isString(body.description) && body.description.trim().length > 0) {
+	// 	validAttributes.description = body.description;
+	// } else if (body.hasOwnProperty('description')) {
+	// 	return response.status(400).json({
+	// 		'Error': 'Description attributed is not in the correct format'
+	// 	});
+	// }
+
+	// _.extend(matchedItem, validAttributes);
+	// response.json(matchedItem);
 });
 
 app.delete('/todos/:id', function(request, response) {
@@ -178,14 +204,14 @@ app.delete('/todos/:id', function(request, response) {
 		where: {
 			id: todoId
 		}
-	}).then(function(rowsDeleted) {
+	}).then(function (rowsDeleted) {
 		if (rowsDeleted > 0) {
 			return response.status(200).json('record with id: ' +
 				todoId + ' has been deleted');
 		} else {
 			return response.status(404).json('no records have been deleted');
 		}
-	}).catch(function(e) {
+	}).catch(function (e) {
 		return response.status(500).json(e);
 	});
 
@@ -206,10 +232,10 @@ app.delete('/todos/:id', function(request, response) {
 });
 
 // POST /todos
-app.post('/todos', function(request, response) {
+app.post('/todos', function (request, response) {
 	var body = _.pick(request.body, 'description', 'completed');
 
-	db.todo.create(body).then(function(todo) {
+	db.todo.create(body).then (function(todo) {
 		response.json(todo.toJSON());
 	}, function(e) {
 		response.status(400).json(e);
@@ -232,8 +258,8 @@ app.post('/todos', function(request, response) {
 	// response.json(body);
 });
 
-db.sequelize.sync().then(function() {
-	app.listen(PORT, function() {
+db.sequelize.sync().then (function() {
+	app.listen(PORT, function () {
 		console.log('Express listening on port ' + PORT + '!');
 	});
 });
