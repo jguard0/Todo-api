@@ -140,7 +140,7 @@ app.put('/todos/:id', function(req, res) {
 
 	db.todo.findById(todoId).then(function (todo) {
 		if (todo) {
-			todo.update(attributes).then(function(todo) {
+			todo.update(attributes).then(function (todo) {
 				res.json(todo.toJSON());
 			}, function (e) {
 				res.status(400).json(e);
@@ -257,6 +257,16 @@ app.post('/todos', function (request, response) {
 	// // push the response object to output strem
 	// response.json(body);
 });
+
+app.post('/users', function (request, response) {
+	var body = _.pick(request.body, 'email', 'password');
+
+	db.user.create(body).then(function(user) {
+		response.json(user.toJSON());
+	}, function (e) {
+		response.status(400).json(e);
+	});
+})
 
 db.sequelize.sync().then (function() {
 	app.listen(PORT, function () {
